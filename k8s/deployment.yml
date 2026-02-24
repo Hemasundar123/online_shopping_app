@@ -15,8 +15,8 @@ spec:
     spec:
       containers:
       - name: online-shop
-        image: online:latest
-        imagePullPolicy: IfNotPresent
+        image: mikey699/online:latest
+        imagePullPolicy: Always
         ports:
         - containerPort: 80
         envFrom:
