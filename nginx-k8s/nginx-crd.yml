@@ -2,7 +2,7 @@ apiVersion: argoproj.io/v1alpha1
 kind: Application               
 metadata:                                                 
   name: nginx-frontend          
-  namespace: argocd             
+  namespace: frontend-team             
 spec:
   project: frontend-team        
   source:
