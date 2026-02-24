@@ -12,7 +12,7 @@ spec:
     path: k8s
   destination:
     server: https://172.17.0.1:33893
-    namespace: default            
+    namespace: online-shop-prod      
   syncPolicy:                      
     automated:                  
       prune: true                  
