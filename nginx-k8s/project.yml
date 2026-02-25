@@ -11,8 +11,7 @@ spec:
     - https://github.com/Hemasundar123/online_shopping_app.git
 
   destinations:
-    - namespace: argocd
-      server: https://172.17.0.1:33893
+    
 
   clusterResourceWhitelist:
     - group: "*"
