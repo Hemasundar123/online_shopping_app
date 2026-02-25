@@ -12,7 +12,9 @@ spec:
 
   destinations:
     - namespace: online-shop-prod
-      server: https://172.17.0.1:33893 
+      server: https://172.17.0.1:33893
+    - namespace: ingress-nginx
+      server: https://172.17.0.1:33893
 
   clusterResourceWhitelist:
     - group: "*"
