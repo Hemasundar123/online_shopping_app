@@ -1,10 +1,10 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application               
 metadata:                                                 
-  name: nginx-frontend          
+  name: nginx         
   namespace: argocd           
 spec:
-  project: frontend-team        
+  project: nginx        
   source:
     repoURL: https://github.com/Hemasundar123/online_shopping_app.git
     targetRevision: master       
