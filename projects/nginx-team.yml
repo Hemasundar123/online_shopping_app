@@ -1,0 +1,29 @@
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: nginx
+  namespace: argocd
+
+spec:
+  description: Nginx-team Project
+
+  sourceRepos:
+    - https://github.com/Hemasundar123/online_shopping_app.git
+
+  destinations:
+    - namespace: nginx
+      server: https://172.17.0.1:33893
+
+  clusterResourceWhitelist:
+    - group: "*"
+      kind: "*"
+
+  namespaceResourceWhitelist:
+    - group: "*"
+      kind: "*"
+
+  roles:
+    - name: nginx-teams
+      description: Admins of nginx-Project
+      policies:
+        - p,proj:nginx:nginx-teams,applications, *, nginx/*, allow
