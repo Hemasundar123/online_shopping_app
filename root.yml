@@ -4,7 +4,7 @@ metadata:
   name: root-app
   namespace: argocd             
 spec:
-  project: default           
+  project: frontend-team         
   source:
     repoURL: https://github.com/Hemasundar123/online_shopping_app.git
     targetRevision: master
