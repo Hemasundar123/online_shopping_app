@@ -4,7 +4,7 @@ metadata:
   name: online-shop
   namespace: online-shop-prod
   annotations:
-    argocd.argoproj.io/health-options: ignore
+    argocd.argoproj.io/compare-options: IgnoreExtraneous
     nginx.ingress.kubernetes.io/ssl-redirect: "false"
     nginx.ingress.kubernetes.io/use-regex: "true"
     nginx.ingress.kubernetes.io/rewrite-target: /
