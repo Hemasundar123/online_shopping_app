@@ -1,0 +1,20 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application               
+metadata:                                                 
+  name: nginx-frontend          
+  namespace: argocd           
+spec:
+  project: frontend-team        
+  source:
+    repoURL: https://github.com/Hemasundar123/online_shopping_app.git
+    targetRevision: master       
+    path: nginx-k8s
+  destination:
+    server: https://172.17.0.1:33893
+    namespace: nginx
+  syncPolicy:                    
+    automated:                   
+      prune: true         
+      selfHeal: true              
+    syncOptions:            
+      - CreateNamespace=true
