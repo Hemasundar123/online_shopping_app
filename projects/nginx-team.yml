@@ -12,7 +12,7 @@ spec:
 
   destinations:
     - namespace: nginx
-      server: https://172.17.0.1:33893
+      server: https://172.17.0.1:33894
 
   clusterResourceWhitelist:
     - group: "*"
