@@ -10,7 +10,7 @@ spec:
     targetRevision: master       
     path: nginx-k8s
   destination:
-    server: https://172.17.0.1:33893
+    server: https://172.17.0.1:33894
     namespace: nginx
   syncPolicy:                    
     automated:                   
