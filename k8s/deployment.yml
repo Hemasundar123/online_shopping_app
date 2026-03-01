@@ -3,6 +3,11 @@ kind: Deployment
 metadata:
   name: online-shop
   namespace: online-shop-prod
+  annotations:
+    # Assign alias 'chai-app' to your image
+    argocd-image-updater.argoproj.io/image-list: online-shop=mikey699/online-devops
+    argocd-image-updater.argoproj.io/write-back-method: git:secret:argocd/argocd-image-updater-git-creds 
+    argocd-image-updater.argoproj.io/chai-app.update-strategy: semver  
 spec:
   replicas: 3
   selector:
