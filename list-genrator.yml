@@ -1,0 +1,29 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: list-generator
+  namespace: argocd
+spec:
+  generators:
+    - list:
+        elements:
+          - app: nginx
+            path: nginx-k8s
+          - app: online-shop
+            path: k8s
+  template:
+    metadata:
+      name: '{{app}}-list'
+    spec:
+      project: default
+      source:
+        repoURL: https://github.com/Hemasundar123/online_shopping_app.git
+        targetRevision: master
+        path: '{{path}}'
+      destination:
+        server: https://kubernetes.default.svc
+        namespace: default
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true

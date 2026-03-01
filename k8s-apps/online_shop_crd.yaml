@@ -3,7 +3,10 @@ apiVersion: argoproj.io/v1alpha1
 kind: Application                  
 metadata:
   name: online-shop-app            
-  namespace: argocd                
+  namespace: argocd
+  annotations:
+    notifications.argoproj.io/subscribe.on-health-degraded.email: "jagilinkihemasundar333@gmail.com"
+    notifications.argoproj.io/subscribe.on-deployed.email: "jagilinkihemasundar333@gmail.com"  
 spec:
   project: frontend-team              
   source:

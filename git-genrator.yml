@@ -1,0 +1,30 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: git-gen
+  namespace: argocd
+spec:
+  generators:
+    - git:
+        repoURL: https://github.com/Hemasundar123/online_shopping_app.git
+        revision: master
+        directories:
+          - path: "git_generator/*"   
+  template:
+    metadata:
+      name: '{{path.basename}}-git'
+    spec:
+      project: default
+      source:
+        repoURL: https://github.com/Hemasundar123/online_shopping_app.git
+        targetRevision: master
+        path: '{{path}}'        
+      destination:
+        server: https://kubernetes.default.svc
+        namespace: default
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+
+

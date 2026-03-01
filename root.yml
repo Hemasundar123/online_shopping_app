@@ -10,7 +10,7 @@ spec:
     targetRevision: master
     path: k8s-apps
   destination:
-    server: https://172.17.0.1:33893 
+    server: https://kubernetes.default.svc 
     namespace: argocd             
   syncPolicy:
     automated:
