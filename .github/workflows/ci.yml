@@ -6,7 +6,7 @@ on:
     branches: [master]
 
 env:
-  IMAGE_NAME: shopping
+  IMAGE_NAME: ${{vars.DOCKER_USERNAME}}/shopping
   IMAGE_TAG: ${{ github.sha }}
 
 jobs:
