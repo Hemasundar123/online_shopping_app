@@ -103,7 +103,7 @@ jobs:
               run: |
                 kubectl create -f k8s-apps/online_shop_crd.yaml
                 echo "Application created successfully"
-                argocd app list -n ${{ env.argocd_namespace }}
+                argocd app list
 
             - name: Deployment summary
               run: |
