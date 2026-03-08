@@ -76,7 +76,7 @@ jobs:
                 kubectl port-forward svc/argocd-server -n ${{ env.argocd_namespace }} 8080:443 &
                 sleep 5
 
-                argocd login localhost:8080 --username admin --password "${ARGOCD_PASSWORD}" 
+                argocd login localhost:8080 --username admin --password "${ARGOCD_PASSWORD}" --insecure
 
                 echo "Argocd logged in successfully"
 
