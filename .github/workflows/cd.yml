@@ -84,7 +84,7 @@ jobs:
               run: |
                 argocd cluster add kind-${{ env.cluster_name }} --name kind-${{ env.cluster_name }} --in-cluster
                 echo "Cluster registered with ArgoCD successfully"
-                argocd cluster list
+                argocd proj list
 
             - name: create Namespace for the app
               run: |
@@ -97,13 +97,13 @@ jobs:
               run: |
                 kubectl create -f projects/frontend-team.yml
                 echo "Project created successfully"
-                argocd get projects -n argocd
+                argocd proj list
             
             - name: Deploy the application with ArgoCD
               run: |
                 kubectl create -f k8s-apps/online-shop-crd.yaml
                 echo "Application created successfully"
-                argocd app list -n argocd
+                argocd app list -n ${{ env.argocd_namespace }}
 
             - name: Deployment summary
               run: |
