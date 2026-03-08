@@ -1,4 +1,4 @@
-name: CI-Pipeline
+name: github-actions-ci
 on:
   push:
     branches: [main]
