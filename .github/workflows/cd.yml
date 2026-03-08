@@ -46,7 +46,7 @@ jobs:
                 helm repo update
                 kubectl create namespace ${{ env.argocd_namespace }} || true
                 helm upgrade --install argocd argo/argo-cd \
-                    --namespace ${{ env.ARGOCD_NAMESPACE }} \
+                    --namespace ${{ env.argocd_namespace }} \
                     --set server.service.type=NodePort \
                     --wait \
                     --timeout 5m
@@ -70,7 +70,7 @@ jobs:
             - name: Login to ArgoCD
               run: |
                 ARGOCD_PASSWORD=$(kubectl get secret argocd-initial-admin-secret \
-                -n ${{ env.ARGOCD_NAMESPACE }} \
+                -n ${{ env.argocd_namespace }} \
                 -o jsonpath="{.data.password}" | base64 -d)
                 
                 kubectl port-forward svc/argocd-server -n ${{ env.argocd_namespace }} 8080:443 &
