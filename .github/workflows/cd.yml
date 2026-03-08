@@ -1,0 +1,113 @@
+name: Continuous Deployment
+on:
+  repository_dispatch:
+    types: [trigger-cd]
+
+  workflow_dispatch:
+    inputs:
+      image_tag:
+        description: 'Docker image tag to deploy'
+        required: true
+      sha:
+        description: 'Git commit SHA associated with the image'
+        required: true
+
+env:
+    cluster_name: shopping-cluster
+    argocd_namespace: argocd
+    app_namespace: online-shop-prod
+    image_tag: ${{ github.event.client_payload.image_tag || github.event.inputs.image_tag || 'latest' }}
+
+jobs:
+    deploy:
+        name: Deploy to kind + ArgoCD
+        runs-on: ubuntu-latest
+        timeout-minutes: 20
+
+        steps:
+            - name: Check out the repository
+              uses: actions/checkout@v4
+
+            - name: create kind cluster
+              uses: helm/kind-action@v1.9.0
+              with:
+                cluster_name: ${{ env.cluster_name }}
+                config: kind-cluster.yml
+                wait: 120s
+
+            - name: cluster health
+              run: |
+                kubectl get nodes -o wide
+                kubectl config current-context
+            
+            - name: Install ArgoCD with Helm
+              run: |
+                helm repo add argo https://argoproj.github.io/argo-helm
+                helm repo update
+                kubectl create namespace ${{ env.argocd_namespace }} || true
+                helm upgrade --install argocd argo/argo-cd \
+                    --namespace ${{ env.ARGOCD_NAMESPACE }} \
+                    --set server.service.type=NodePort \
+                    --wait \
+                    --timeout 5m
+
+            - name: Wait for ArgoCD server to be ready
+              run: |
+                kubectl wait --namespace ${{ env.argocd_namespace }} \
+                  --for=condition=available deployment/argocd-server \
+                  --timeout=5m
+                kubectl get pods -n ${{ env.argocd_namespace }}
+
+            - name: create ArgoCD Cli
+              run: |
+                ARGOCD_VERSION=$(curl -s https://api.github.com/repos/argoproj/argo-cd/releases/latest \
+                | grep tag_name | cut -d '"' -f4)
+                curl -sSL -o /usr/local/bin/argocd \
+                "https://github.com/argoproj/argo-cd/releases/download/${ARGOCD_VERSION}/argocd-linux-amd64"
+                chmod +x /usr/local/bin/argocd
+                argocd version --client
+
+            - name: Login to ArgoCD
+              run: |
+                ARGOCD_PASSWORD=$(kubectl get secret argocd-initial-admin-secret \
+                -n ${{ env.ARGOCD_NAMESPACE }} \
+                -o jsonpath="{.data.password}" | base64 -d)
+                
+                kubectl port-forward svc/argocd-server -n ${{ env.argocd_namespace }} 8080:443 &
+                sleep 5
+
+                argocd login localhost:8080 --username admin --password "${ARGOCD_PASSWORD}" 
+
+                echo "Argocd logged in successfully"
+
+            - name: Register cluster with ArgoCD
+              run: |
+                argocd cluster add kind-${{ env.cluster_name }} --name kind-${{ env.cluster_name }} --in-cluster
+                echo "Cluster registered with ArgoCD successfully"
+                argocd cluster list
+
+            - name: create Namespace for the app
+              run: |
+                kubectl create namespace ${{ env.app_namespace }} || true
+                kubectl create namespace ingress-nginx || true
+
+                kubectl get namespaces
+            
+            - name: Deploy the project with ArgoCD
+              run: |
+                kubectl create -f projects/frontend-team.yml
+                echo "Project created successfully"
+                argocd get projects -n argocd
+            
+            - name: Deploy the application with ArgoCD
+              run: |
+                kubectl create -f k8s-apps/online-shop-crd.yaml
+                echo "Application created successfully"
+                argocd app list -n argocd
+
+            - name: Deployment summary
+              run: |
+                echo "Application deployed successfully with ArgoCD. Image tag: ${{ env.image_tag }}"
+                kubectl get all -n ${{ env.app_namespace }}
+
+                
