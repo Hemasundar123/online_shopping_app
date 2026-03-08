@@ -1,0 +1,130 @@
+name: CI-Pipeline
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+    login:
+        runs-on: ubuntu-latest
+        steps:
+            - name: Run a one-line script
+              run: echo "Logging in to DockerHub"
+            - name: Login to DockerHub
+              uses: docker/login-action@v3
+              with:
+                username: ${{ vars.DOCKER_USERNAME }}
+                password: ${{ secrets.DOCKER_PASSWORD}}
+
+    build:
+        timeout-minutes: 3
+        concurrency:
+            group: dev
+            cancel-in-progress: true
+        runs-on: ubuntu-latest
+        needs: login
+        steps:
+            - name: Check out the repository
+              uses: actions/checkout@v4
+            - name: Build the Docker image
+              uses: whoan/docker-build-with-cache-action@v5
+              with:
+                username: ${{ vars.DOCKER_USERNAME }}
+                password: ${{ secrets.DOCKER_PASSWORD }}
+                image_name: shopping
+                image_tag: v1
+
+    install-dependencies:
+        timeout-minutes: 3
+        concurrency:
+            group: dev
+            cancel-in-progress: true
+        runs-on: ubuntu-latest
+        needs: build
+        steps:
+            - name: Check out the repository
+              uses: actions/checkout@v4
+            - name: Install ArgoCD CLI
+              run: |
+                kind version
+                if kind version == dev/null; then
+                  echo "Kind is not installed. Installing Kind..."
+                  curl -Lo ./kind https://kind.sigs.k8s.io/dl/v0.17.0/kind-$(uname)-amd64
+                  chmod +x ./kind
+                  sudo mv ./kind /usr/local/bin/
+                else
+                  echo "Kind is already installed."
+                fi
+
+                if kubectl version --client > /dev/null 2>&1; then
+                  echo "kubectl is already installed."
+                else
+                  echo "kubectl is not installed. Installing kubectl..."
+                  curl -LO https://storage.googleapis.com/kubernetes-release/release/$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)/bin/linux/amd64/kubectl
+                  chmod +x kubectl
+                  sudo mv kubectl /usr/local/bin/
+                fi
+
+                if helm version > /dev/null 2>&1; then
+                  echo "Helm is already installed."
+                else
+                  echo "Helm is not installed. Installing Helm..."
+                  curl -fsSL -o get_helm.sh https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3
+                  chmod +x get_helm.sh
+                  ./get_helm.sh
+                fi
+
+                if argocd version > /dev/null 2>&1; then
+                  echo "ArgoCD CLI is already installed."
+                else
+                  echo "ArgoCD CLI is not installed. Installing ArgoCD CLI..."
+                  helm repo add argo https://argoproj.github.io/argo-helm
+                  helm repo update
+
+                kubectl create namespace argocd
+                helm install argocd argo/argo-cd -n argocd
+                kubectl get pods -n argocd
+                kubectl get svc -n argocd
+                kubectl get secret argocd-initial-admin-secret -n argocd \ -o jsonpath="{.data.password}" | base64 -d && echo
+
+
+    create-cluster:
+        timeout-minutes: 10
+        concurrency:
+            group: dev
+            cancel-in-progress: true
+        runs-on: ubuntu-latest
+        needs: install-dependencies
+        steps:
+            - name: Check out the repository
+              uses: actions/checkout@v4
+            - name: Create a Kind cluster
+              run: |
+                kind create cluster --name shopping-cluster --config ./kind-cluster.yaml
+                kubectl config get-contexts
+                kubectl config use-context kind-shopping-cluster
+                kubectl cluster-info
+                argocd cluster add kind-shopping-cluster --name shopping-cluster
+                argocd cluster list
+
+    argocd-application:
+        timeout-minutes: 10
+        concurrency:
+            group: dev
+            cancel-in-progress: true
+        runs-on: ubuntu-latest
+        needs: [create-cluster,install-dependencies]
+        steps:
+            - name: Check out the repository
+              uses: actions/checkout@v4
+            - name: Create ArgoCD application
+              run: |
+                kubectl create namespace online-shop-prod
+                kubectl create namespace ingress-nginx
+                kubectl create -f ./projects/frontend-team.yml
+                kubectl get applications -n argocd
+                kubectl apply -f ./k8s-apps/online_shop_crd.yaml
+                argocd app list -n argocd
+    
+    
