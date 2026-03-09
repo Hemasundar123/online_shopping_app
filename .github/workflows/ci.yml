@@ -44,12 +44,22 @@ jobs:
             - name: Image build summary
               run: echo "Docker image ${{ env.IMAGE_NAME }}:${{ env.IMAGE_TAG }} built and pushed successfully."
 
-            - name: Trigger CD Workflow
-              if: github.ref == 'refs/heads/master'
-              uses: peter-evans/repository-dispatch@v3
-              with:
-                token: ${{ secrets.GITHUB_TOKEN }}
-                event-type: trigger-cd
-                client-payload: '{"image_tag": "${{ env.IMAGE_TAG }}", "sha": "${{ env.IMAGE_TAG }}"}'
+            - name: Kubernetes Deploy Image
+              run: |
+                echo "Docker image ${{ env.IMAGE_NAME }}:${{ env.IMAGE_TAG }} is ready for deployment."
+                sed -i "s|image: .*|image: ${{ env.IMAGE_NAME }}:${{ env.IMAGE_TAG }}|g" k8s/deployment.yml
+
+            - name: show deployment file
+              run: cat k8s/deployment.yml
+            
+
+
+            # - name: Trigger CD Workflow
+            #   if: github.ref == 'refs/heads/master'
+            #   uses: peter-evans/repository-dispatch@v3
+            #   with:
+            #     token: ${{ secrets.GITHUB_TOKEN }}
+            #     event-type: trigger-cd
+            #     client-payload: '{"image_tag": "${{ env.IMAGE_TAG }}", "sha": "${{ env.IMAGE_TAG }}"}'
             
     
