@@ -59,6 +59,7 @@ jobs:
                 git add k8s/deployment.yml
                 git commit -m "Update deployment image to ${{ env.IMAGE_NAME }}:${{ env.IMAGE_TAG }}"
                 git push origin master
+                echo "Deployment file updated and pushed to GitHub."
             
 
 
