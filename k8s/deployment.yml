@@ -20,7 +20,7 @@ spec:
     spec:
       containers:
       - name: online-shop
-        image: mikey699/shopping:23cdb85b4a9859c92a2f381f41b3fc43cee1ec3e
+        image: mikey699/shopping:7fc5a284210328c1a76831495b984bc89423c940
         imagePullPolicy: Always
         ports:
         - containerPort: 80
